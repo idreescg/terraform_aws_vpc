@@ -137,22 +137,15 @@ resource "local_file" "ec2-key" {
 
 #--------------------------------------------Creation of ec2 instance with public Subnet---------------------
 resource "aws_instance" "web_instance" {
-  ami           = "ami-014992d032c40b60a"
-  instance_type = "t2.medium"
+  ami           = "ami-075b5421f670d735c"
+  instance_type = "t3.medium"
   key_name      = "ec2-key"
 
   subnet_id                   = aws_subnet.public_subnet_us-west-2a.id
   vpc_security_group_ids      = [aws_security_group.sg_webserver.id]
   associate_public_ip_address = true
 
-   user_data = <<-EOF
-   #!/bin/bash -ex
-   cd /home/ec2-user      
-   mkdir myagent && cd myagent
-   yum install wget -y
-   wget https://vstsagentpackage.azureedge.net/agent/3.241.0/vsts-agent-linux-x64-3.241.0.tar.gz
-   tar zxvf vsts-agent-linux-x64-3.241.0.tar.gz
-   EOF
+   user_data = null
 
   tags = {
     "Name" : "MyterraformEc2"
