@@ -134,6 +134,41 @@ resource "local_file" "ec2-key" {
     filename = "ec2key"
 }
 
+#--------------------------------------------Creation IAM ROle for session Manager---------------------
+
+resource "aws_iam_role" "sessionmanagerrole" {
+  name = "sessionmanagerrole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+
+resource "aws_iam_role_policy_attachment" "ssm_core_attach" {
+  role       = aws_iam_role.sessionmanagerrole.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "session_profile" {
+  name = "sessionmanagerprofile"
+  role = aws_iam_role.sessionmanagerrole.name
+}
+
+
+#-----------------------------------------------------------------
+
+
+
 
 #--------------------------------------------Creation of ec2 instance with public Subnet---------------------
 resource "aws_instance" "web_instance" {
@@ -145,10 +180,12 @@ resource "aws_instance" "web_instance" {
   vpc_security_group_ids      = [aws_security_group.sg_webserver.id]
   associate_public_ip_address = true
 
+  iam_instance_profile = aws_iam_instance_profile.session_profile.name
+
    user_data = null
 
   tags = {
-    "Name" : "MyterraformEc2"
+    "Name" : "AmazonLInuxServer"
   }
 }
 
